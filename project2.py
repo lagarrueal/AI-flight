@@ -69,13 +69,7 @@ def main():
     parsedFlights[10][1].plot(ax2, color="red")
     parsedFlights[15][1].plot(ax3, color="blue")
     parsedFlights[20][1].plot(ax4, color="orange")
-    
-    fig.tight_layout()
-    
-    plt.show()
-    
-    plt.rcParams["figure.autolayout"] = True
-    plt.style.context("traffic")
+        
     fig, ((ax1, ax2),(ax3,ax4)) = plt.subplots(2, 2 , subplot_kw = dict(projection=Mercator()) )
     fig.suptitle('Radar data flight visualisation')
     ax1.add_feature(countries())
@@ -96,12 +90,6 @@ def main():
     parsedRadarData[15][1].plot(ax3, color="blue")
     parsedRadarData[20][1].plot(ax4, color="orange")
     
-    fig.tight_layout()
-    
-    plt.show()
-    
-    plt.rcParams["figure.autolayout"] = True
-    plt.style.context("traffic")
     fig, ((ax1, ax2),(ax3,ax4)) = plt.subplots(2, 2 , subplot_kw = dict(projection=Mercator()) )
     fig.suptitle('Comparison of ground truth data and radar data')
     ax1.add_feature(countries())
