@@ -47,20 +47,29 @@ def main():
     
     # plt.show()
     
-    fig, ((ax1, ax2),(ax3,ax4)) = plt.subplots(2, 2 , subplot_kw=dict(projection=Mercator()))
+    plt.rcParams["figure.autolayout"] = True
+    plt.style.context("traffic")
+    fig, ((ax1, ax2),(ax3,ax4)) = plt.subplots(2, 2 , subplot_kw = dict(projection=Mercator()) )
     fig.suptitle('Flight visualisation')
     ax1.add_feature(countries())
-    ax1.set_title("Flight " + str(parsedFlights[0][0]) )
+    ax1.set_title("Flight " + str(parsedFlights[5][0]) )
+    ax1.axis("equal")
     ax2.add_feature(countries())
-    ax2.set_title("Flight " + str(parsedFlights[1][0]) )
+    ax2.set_title("Flight " + str(parsedFlights[10][0]) )
+    ax2.axis("equal")
     ax3.add_feature(countries())
-    ax3.set_title("Flight " + str(parsedFlights[2][0]) )
+    ax3.set_title("Flight " + str(parsedFlights[15][0]) )
+    ax3.axis("equal")
     ax4.add_feature(countries())
-    ax4.set_title("Flight " + str(parsedFlights[3][0]) )
-    parsedFlights[0][1].plot(ax1, color="green")
-    parsedFlights[1][1].plot(ax2, color="red")
-    parsedFlights[2][1].plot(ax3, color="blue")
-    parsedFlights[3][1].plot(ax4, color="orange")
+    ax4.set_title("Flight " + str(parsedFlights[20][0]) )
+    ax4.axis("equal")
+    
+    parsedFlights[5][1].plot(ax1, color="green")
+    parsedFlights[10][1].plot(ax2, color="red")
+    parsedFlights[15][1].plot(ax3, color="blue")
+    parsedFlights[20][1].plot(ax4, color="orange")
+    
+    fig.tight_layout()
     
     plt.show()
     
