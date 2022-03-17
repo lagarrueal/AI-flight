@@ -12,17 +12,17 @@ projection_for_flight = {}
 
 def get_ground_truth_data():
     """ returns a dict of flight_id -> flight with flight data containing the original GPS data
-     resampled to 10s (with one position every 10s)
+    resampled to 10s (with one position every 10s)
     """
     names = ['liguria', 'pixair_toulouse', 'indiana', 'texas', 'georeal_fyn_island', 'ign_mercantour',
-             'ign_fontainebleau', 'mecsek_mountains', 'ign_lot_et_garonne', 'inflight_refuelling', 'aircraft_carrier',
-             'luberon', 'alto_adige', 'franconia', 'danube_valley', 'cevennes', 'oxford_cambridge', 'alpi_italiane',
-             'rega_zh', 'samu31', 'rega_sg', 'monastir', 'guatemala', 'london_heathrow', 'cardiff', 'sydney',
-             'brussels_ils', 'ajaccio', 'toulouse', 'noumea', 'london_gatwick', 'perth', 'kota_kinabalu', 'montreal',
-             'funchal', 'nice', 'munich', 'vancouver', 'lisbon', 'liege_sprimont', 'kiruna', 'bornholm', 'kingston',
-             'brussels_vor', 'vienna', 'border_control', 'dreamliner_boeing', 'texas_longhorn', 'zero_gravity',
-             'qantas747', 'turkish_flag', 'airbus_tree', 'easter_rabbit', 'belevingsvlucht', 'anzac_day', 'thankyou',
-             'vasaloppet']
+            'ign_fontainebleau', 'mecsek_mountains', 'ign_lot_et_garonne', 'inflight_refuelling', 'aircraft_carrier',
+            'luberon', 'alto_adige', 'franconia', 'danube_valley', 'cevennes', 'oxford_cambridge', 'alpi_italiane',
+            'rega_zh', 'samu31', 'rega_sg', 'monastir', 'guatemala', 'london_heathrow', 'cardiff', 'sydney',
+            'brussels_ils', 'ajaccio', 'toulouse', 'noumea', 'london_gatwick', 'perth', 'kota_kinabalu', 'montreal',
+            'funchal', 'nice', 'munich', 'vancouver', 'lisbon', 'liege_sprimont', 'kiruna', 'bornholm', 'kingston',
+            'brussels_vor', 'vienna', 'border_control', 'dreamliner_boeing', 'texas_longhorn', 'zero_gravity',
+            'qantas747', 'turkish_flag', 'airbus_tree', 'easter_rabbit', 'belevingsvlucht', 'anzac_day', 'thankyou',
+            'vasaloppet']
 
     flights = {}
     i = 0
@@ -33,9 +33,9 @@ def get_ground_truth_data():
         flight = flight.assign(flight_id=f"{flight.callsign}_{i:03}")
         print("reading data of flight: %s" % flight.flight_id)
         projection = pyproj.Proj(proj="lcc", ellps="WGS84",
-                                 lat_1=flight.data.latitude.min(), lat_2=flight.data.latitude.max(),
-                                 lon_1=flight.data.longitude.min(), lon_2=flight.data.longitude.max(),
-                                 lat_0=flight.data.latitude.mean(), lon_0=flight.data.longitude.mean())
+                                lat_1=flight.data.latitude.min(), lat_2=flight.data.latitude.max(),
+                                lon_1=flight.data.longitude.min(), lon_2=flight.data.longitude.max(),
+                                lat_0=flight.data.latitude.mean(), lon_0=flight.data.longitude.mean())
         if flight.flight_id in projection_for_flight:
             print("ERROR: duplicate flight ids: %s" % flight.flight_id)
         flights[flight.flight_id] = flight
@@ -111,9 +111,9 @@ def set_lat_lon_from_x_y(flight):
     set_lat_lon_from_x_y(flight) updates the given flight's latitudes and longitudes to reflect its x, y positions
     in the data.
     The intended use of this function is to:
-      1. make a (deep) copy of a flight that you got from get_radar_data
-      2. use a kalman filter on that flight and set the x, y columns of the data to the filtered positions
-      3. call set_lat_lon_from_x_y() on that flight to set its latitude and longitude columns according to the
+        1. make a (deep) copy of a flight that you got from get_radar_data
+        2. use a kalman filter on that flight and set the x, y columns of the data to the filtered positions
+        3. call set_lat_lon_from_x_y() on that flight to set its latitude and longitude columns according to the
         filtered x,y positions
     Step 3 is necessary, if you want to plot the data, because plotting is based on the lat/lon coordinates and not
     based on x,y.
