@@ -18,7 +18,7 @@ from matplotlib.dates import DateFormatter
 def main():
     # TODO: put your code here
     
-    delta_t = 1
+    delta_t = 10
     standard_deviation_o = 100
     acceleration_g = 0.3
     acceleration_m_squared_sec = 3
@@ -42,12 +42,12 @@ def main():
     R = np.zeros(size2)
     R[0][0] , R[1][1] = co_variance_matching_pair , co_variance_matching_pair
     print(f"R =\n {R}")
-    H = np.zeros(size4)
-    print(f"R =\n {H}")
+    H = np.zeros((2,4))
+    H[0][0] , H[1][2] = 1 , 1
+    print(f"H =\n {H}")
     
 
     parsedFlights = []
-    parsedRadarData = []
     flights = get_ground_truth_data()
     # print(flights)
     # print("\n")
@@ -55,10 +55,13 @@ def main():
     for key,value  in flights.items() :
         parsedFlights.append([key,value])
     
-    # print(parsedFlights)
+    print(parsedFlights[0])
+    print(parsedFlights[0][1].data)
     # print("\n")
     # print("\n")    
+    exit()
     
+    parsedRadarData = []
     radarData = get_radar_data(flights)
     for key,value  in radarData.items() :
         parsedRadarData.append([key,value])
