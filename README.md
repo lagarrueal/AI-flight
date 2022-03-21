@@ -6,7 +6,7 @@ How to install the needed libraries
 The following commands work on a plain Ubuntu installation.
 
 # install needed libraries (Proj, GEOS)
-apt install python3 python3-pip
+apt install python3 python3-pip  
 apt install libproj-dev libgeos-dev proj-data proj-bin
 # download traffic-viz 
 git clone https://github.com/xoolive/traffic
@@ -27,9 +27,9 @@ How to execute the program
 python3 project2.py
 
 # changing the parameters
-project2.py => line 27 : changing the value of the parameter delta_t
-            => line 29 : changing the value of the parameter sigma0
-            => line 30 : changing the value of the parameter sigmaP
+project2.py => line 27 : changing the value of the parameter delta_t  
+            => line 29 : changing the value of the parameter sigma0  
+            => line 30 : changing the value of the parameter sigmaP  
 
 # changing the flight we're filtering, smoothing and ploting
 project2.py => line 33 : changing the value of the parameter id, different flight ids can be found in the file orderedFlightData.txt
