@@ -30,15 +30,18 @@ def main():
     sigmaP = 1.5
     
     #the flight ID to plot and filter
-    id = 'SAMU31_019'
+    id = 'N441FS_003'
     
     flights = get_ground_truth_data()  
     
 
     plot_filtered_smoothed_flight(flights , id , delta_t  , sigma0 , sigmaP )
     
-    print("Error :")
+    print("Error on filtered flight:")
     print( kalman_error(flights[id] , kalman_filtering(flights[id] , delta_t , sigmaP , sigma0) ) )
+    
+    print("Error on smoothed flight: ")
+    print( kalman_error(flights[id] , kalman_smoothing(flights[id] , delta_t , sigmaP , sigma0) ) )
 
 
 def kalman_filtering(flight, delta_t, sigma0, sigmaP):
@@ -175,7 +178,8 @@ def plot_filtered_smoothed_flight(flights , id , delta_t , sigmaP , sigma0):
     plt.style.context("traffic")
     
     fig, (ax1, ax2 , ax3 , ax4) = plt.subplots(1 , 4 , subplot_kw = dict(projection=Mercator()) )
-    fig.suptitle('Comparison of ground truth data, radar data and filtered radar data')
+    fig.suptitle('Comparison of ground truth data, radar data, filtered radar data and smoothed data.' + "\n" +
+                 "Parameters: delta_t = " + str(delta_t) + ", sigmaP = " + str(sigmaP) + ", sigma0 = " + str(sigma0))
     ax1.add_feature(countries())
     
     ax1.set_title("Ground truth data of flight " + id) 
