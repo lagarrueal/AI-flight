@@ -30,18 +30,21 @@ def main():
     sigmaP = 1.5
     
     #the flight ID to plot and filter
-    id = 'N441FS_003'
+    id = 'DMUPY_052'
     
     flights = get_ground_truth_data()  
     
 
     plot_filtered_smoothed_flight(flights , id , delta_t  , sigma0 , sigmaP )
     
-    print("Error on filtered flight:")
-    print( kalman_error(flights[id] , kalman_filtering(flights[id] , delta_t , sigmaP , sigma0) ) )
+    print("Error between real flight and radar flight")
+    print(kalman_error(flights[id] , get_radar_data_for_flight(flights[id])))
     
-    print("Error on smoothed flight: ")
-    print( kalman_error(flights[id] , kalman_smoothing(flights[id] , delta_t , sigmaP , sigma0) ) )
+    print("Error between real flight and filtered flight:")
+    print( kalman_error(flights[id] , kalman_filtering(flights[id] , delta_t , sigma0 , sigmaP) ) )
+    
+    print("Error between real flight and smoothed flight: ")
+    print( kalman_error(flights[id] , kalman_smoothing(flights[id] , delta_t , sigma0 , sigmaP) ) )
 
 
 def kalman_filtering(flight, delta_t, sigma0, sigmaP):
@@ -59,20 +62,17 @@ def kalman_filtering(flight, delta_t, sigma0, sigmaP):
     kf = KalmanFilter(dim_x=4, dim_z=2)
 
     #State Transition matrix
-    kf.F = np.array([[1,delta_t,0,0], 
+    kf.F = np.array([[1,delta_t,0,0],
                      [0,1,0,0],
                      [0,0,1,delta_t],
                      [0,0,0,1]])
-
-    #State
-    kf.x = np.zeros((4,1))
 
     #Measurement function
     kf.H = np.array([[1,0,0,0],
                      [0,0,1,0]])
 
     #Covariance matrix for the porecess noise
-    kf.Q = np.array([[0.25*delta_t**(4),0.5*delta_t**(3),0,0], 
+    kf.Q = np.array([[0.25*delta_t**(4),0.5*delta_t**(3),0,0],
                      [0.5*delta_t**(3),delta_t**(2),0,0],
                      [0,0,0.25*delta_t**(4),0.5*delta_t**(3)],
                      [0,0,0.5*delta_t**(3),delta_t**(2)]])*sigmaP**(2)
@@ -83,6 +83,13 @@ def kalman_filtering(flight, delta_t, sigma0, sigmaP):
 
     #radar data
     flight_radar = get_radar_data_for_flight(flight)
+
+    #State
+    kf.x = np.array([[flight_radar.data.at[0, "x"]],
+                     [0],
+                     [flight_radar.data.at[0, "y"]],
+                     [0]])
+
     Xm=flight_radar.data.x
     Ym=flight_radar.data.y
     
@@ -116,14 +123,14 @@ def kalman_error(flight, kalman_flight):
         distance[i] = geodesic((lats[i],lons[i]), (true_lats[i],true_lons[i])).m
     return np.mean(distance), max(distance)       
 
-def kalman_smoothing(flight,deltaT, sigma0, sigmap):
+def kalman_smoothing(flight,delta_t, sigma0, sigmaP):
     """_summary_
 
     Args:
         flight (_type_): _description_
-        deltaT (_type_): _description_
+        delta_t (_type_): _description_
         sigma0 (_type_): _description_
-        sigmap (_type_): _description_
+        sigmaP (_type_): _description_
 
     Returns:
         _type_: _description_
@@ -131,23 +138,20 @@ def kalman_smoothing(flight,deltaT, sigma0, sigmap):
     kf = KalmanFilter(dim_x=4, dim_z=2)
 
     #State Transition matrix
-    kf.F = np.array([[1,deltaT,0,0],
+    kf.F = np.array([[1,delta_t,0,0],
                      [0,1,0,0],
-                     [0,0,1,deltaT],
+                     [0,0,1,delta_t],
                      [0,0,0,1]])
-
-    #State
-    kf.x = np.zeros((4,1))
 
     #Measurement function
     kf.H = np.array([[1,0,0,0],
                      [0,0,1,0]])
 
     #Covariance matrix for the porecess noise
-    kf.Q = np.array([[0.25*deltaT**(4),0.5*deltaT**(3),0,0],
-                     [0.5*deltaT**(3),deltaT**(2),0,0],
-                     [0,0,0.25*deltaT**(4),0.5*deltaT**(3)],
-                     [0,0,0.5*deltaT**(3),deltaT**(2)]])*sigmap**(2)
+    kf.Q = np.array([[0.25*delta_t**(4),0.5*delta_t**(3),0,0],
+                     [0.5*delta_t**(3),delta_t**(2),0,0],
+                     [0,0,0.25*delta_t**(4),0.5*delta_t**(3)],
+                     [0,0,0.5*delta_t**(3),delta_t**(2)]])*sigmaP**(2)
 
     #Covariance matrix for the observation noise
     kf.R = np.array([[sigma0**(2),0],
@@ -155,6 +159,9 @@ def kalman_smoothing(flight,deltaT, sigma0, sigmap):
 
     #radar data
     flight_radar = get_radar_data_for_flight(flight)
+    #State
+    kf.x = np.array([[flight_radar.data.at[0, "x"]],[0],[flight_radar.data.at[0, "y"]],[0]])
+
     zs=flight_radar.data[['x','y']].values.tolist()
     mean, cov, _,_ = kf.batch_filter(zs)
     
@@ -162,9 +169,9 @@ def kalman_smoothing(flight,deltaT, sigma0, sigmap):
     flight_radar.data.x=M[:,0]
     flight_radar.data.y=M[:,2]
     flight_smoothed =set_lat_lon_from_x_y(flight_radar)
-    return flight_smoothed     
+    return flight_smoothed
 
-def plot_filtered_smoothed_flight(flights , id , delta_t , sigmaP , sigma0):
+def plot_filtered_smoothed_flight(flights , id , delta_t , sigma0, sigmaP):
     """_summary_
 
     Args:
@@ -174,35 +181,99 @@ def plot_filtered_smoothed_flight(flights , id , delta_t , sigmaP , sigma0):
         sigmaP (_type_): _description_
         sigma0 (_type_): _description_
     """
-    plt.rcParams["figure.autolayout"] = True
+    # plt.rcParams["figure.autolayout"] = True
     plt.style.context("traffic")
     
-    fig, (ax1, ax2 , ax3 , ax4) = plt.subplots(1 , 4 , subplot_kw = dict(projection=Mercator()) )
-    fig.suptitle('Comparison of ground truth data, radar data, filtered radar data and smoothed data.' + "\n" +
-                 "Parameters: delta_t = " + str(delta_t) + ", sigmaP = " + str(sigmaP) + ", sigma0 = " + str(sigma0))
-    ax1.add_feature(countries())
+    fig, ax = plt.subplots(1, subplot_kw = dict(projection=Mercator()) )
+    fig.suptitle('Comparison of ground truth data, radar data, filtered radar data and smoothed data. of flight ' + id + "\n" +
+                 "Parameters: delta_t = " + str(delta_t) + ", sigma0 = " + str(sigma0) + ", sigmaP = " + str(sigmaP) )
+    labels = ["Ground data" , "Radar Data" , "Filtered Data" , "Smoothed Data"]
     
-    ax1.set_title("Ground truth data of flight " + id) 
-    ax1.axis("equal")
+    ax.add_feature(countries())    
+    ax.set_xlabel('Longitude [°]')
+    ax.set_ylabel('Latitude [°]')  
     
-    ax2.add_feature(countries())
-    ax2.set_title("Radar data of flight " + id )
-    ax2.axis("equal")
+    flights[id].plot(ax, color="black" , linestyle='-', linewidth=3 ,  label=labels[0])
+    get_radar_data_for_flight(flights[id]).plot(ax, color="orange",  label=labels[1])
+    kalman_filtering(flights[id] , delta_t , sigmaP , sigma0).plot(ax, color="green",  label=labels[2])
+
+    fig.legend(labels=labels, loc="center right", ncol=1)
     
-    ax3.add_feature(countries())
-    ax3.set_title("Filtered radar data of flight " + id )
-    ax3.axis("equal")
-    
-    ax4.add_feature(countries())
-    ax4.set_title("Smoothed radar data of flight " + id )
-    ax4.axis("equal")
-    
-    flights[id].plot(ax1, color="orange")
-    get_radar_data_for_flight(flights[id]).plot(ax2, color="orange")
-    kalman_filtering(flights[id] , delta_t , sigmaP , sigma0).plot(ax3, color="orange")
-    kalman_smoothing(kalman_filtering(flights[id] , delta_t , sigmaP , sigma0) , delta_t , sigmaP , sigma0).plot(ax4, color="orange")
     plt.show()
 
+#function that apply the 3D Kalman filter on a flight
+# input : a flight
+# output : the filtered version of the flight
+def kalman_filtering_3D(flight, deltaT, sigma0, sigmap):
+
+    kf = KalmanFilter(dim_x=6, dim_z=3)
+
+    #State Transition matrix
+    kf.F = np.array([[1,deltaT,0,0,0,0],
+                     [0,1,0,0,0,0],
+                     [0,0,1,deltaT,0,0],
+                     [0,0,0,1,0,0],
+                     [0,0,0,0,1,deltaT],
+                     [0,0,0,0,0,1]])
+
+    #Measurement function
+    kf.H = np.array([[1,0,0,0,0,0],
+                     [0,0,1,0,0,0],
+                     [0,0,0,0,1,0]])
+
+    #Covariance matrix for the porecess noise
+    kf.Q = np.array([[0.25*deltaT**(4),0.5*deltaT**(3),0,0,0,0],
+                     [0.5*deltaT**(3),deltaT**(2),0,0,0,0],
+                     [0,0,0.25*deltaT**(4),0.5*deltaT**(3),0,0],
+                     [0,0,0,0,0.5*deltaT**(3),deltaT**(2)],
+                     [0,0,0.25*deltaT**(4),0.5*deltaT**(3),0,0],
+                     [0,0,0,0,0.5*deltaT**(3),deltaT**(2)]])*sigmap**(2)
+
+    #Covariance matrix for the observation noise
+    kf.R = np.array([[sigma0**(2),0,0],
+                     [0,sigma0**(2),0],
+                     [0,0,sigma0**(2)]])
+
+    #radar data
+    flight_radar = get_radar_data_for_flight(flight)
+    Xm=flight_radar.data.x
+    Ym=flight_radar.data.y
+
+    #State
+    kf.x = np.array([[flight_radar.data.at[0, "x"]],
+                     [0],
+                     [flight_radar.data.at[0, "y"]],
+                     [0],
+                     [flight_radar.data.at[0, "altitude"]],
+                     [0]])
+    
+    # run the kalman filter and store the results
+    for i in range(len(flight_radar.data)):
+        z=np.array([[Xm[i]],[Ym[i]],[flight_radar.data.at[i, "altitude"]]])
+        kf.predict()
+        kf.update(z)
+        flight_radar.data.at[i, "x"]= kf.x[0]
+        flight_radar.data.at[i, "y"]= kf.x[2]
+        flight_radar.data.at[i, "altitude"]= kf.x[4]
+    flight_radar_filtered=set_lat_lon_from_x_y(flight_radar)
+    return flight_radar_filtered
+
+#function to evaluate our 3D model
+# input : flight, 3D kalman filtered flight
+# output error : mean and max distance
+def kalman_error_3D(flight, kalman_flight_3D):
+    flight= flight.resample("10s")
+    distance = [0]*len(kalman_flight_3D)
+    true_lons= flight.data["longitude"]
+    true_lats = flight.data["latitude"]
+    true_alts = flight.data["altitude"]
+    lons= kalman_flight_3D.data["longitude"]
+    lats = kalman_flight_3D.data["latitude"]
+    alts = kalman_flight_3D.data["altitude"]
+    for i in range(len(kalman_flight_3D)):
+        distance_2d = geodesic((lats[i],lons[i]), (true_lats[i],true_lons[i])).m
+        distance[i] = np.sqrt(distance_2d**2 + (true_alts[i] - alts[i])**2)
+    return np.mean(distance), max(distance)
 
 #############################
 
