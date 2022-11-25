@@ -9,7 +9,7 @@ The following commands work on a plain Ubuntu installation.
 apt install python3 python3-pip  
 apt install libproj-dev libgeos-dev proj-data proj-bin
 # download traffic-viz 
-git clone https://github.com/xoolive/traffic
+git clone https://github.com/xoolive/traffic 
 cd traffic/
 # require that Cartopy version is <0.20 to avoid problems with version of Proj
 sed -i 's/^Cartopy = .*/Cartopy = ">=0.19.0,<0.20.0"/' pyproject.toml
