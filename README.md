@@ -1,5 +1,5 @@
 # AI-flight
-Second AI project of the 12 weeks course of Artificial Intelligence.
+Second AI project of the 12 weeks course of Artificial Intelligence at Reykjavik University, Iceland.
 
 How to install the needed libraries
 ===================================
